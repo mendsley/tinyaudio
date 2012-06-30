@@ -1,0 +1,11 @@
+{
+	"name": "nacl_default",
+	"description": "Example of the default tinyaudio driver in NaCl",
+	"version": "1",
+	"app": {
+		"launch": {
+			"local_path": "index.html"
+		}
+	},
+	"minimum_chrome_version": "18"
+}
