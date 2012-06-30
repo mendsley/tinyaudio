@@ -199,9 +199,9 @@ void release()
 	pthread_join(g_thread, NULL);
 }
 
-void lasterror(char* buffer, int nbuffer)
+const char* lasterror()
 {
-	strncpy(buffer, g_lasterror, nbuffer);
+	return g_lasterror;
 }
 
 }

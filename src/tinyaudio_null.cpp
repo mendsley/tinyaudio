@@ -30,6 +30,6 @@ namespace tinyaudio {
 
 bool init(int /*sample_rate*/, samples_callback /*callback*/) { return true; }
 void release() {}
-void lasterror(char* /*buffer*/, int /*nbuffer*/) {}
+const char* lasterror() { return ""; }
 
 }

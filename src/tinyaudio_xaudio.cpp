@@ -228,9 +228,9 @@ void release()
 #endif
 }
 
-void lasterror(char* buffer, int nbuffer)
+const char* lasterror()
 {
-	strncpy(buffer, g_lasterror, nbuffer);
+	return g_lasterror;
 }
 
 }
