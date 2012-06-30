@@ -38,6 +38,7 @@ static int g_sample_rate;
 static samples_callback g_callback;
 static pthread_t g_thread;
 static pa_simple* g_pulse;
+static const char* g_appname = "tinyaudio app";
 static bool g_running;
 static const int c_nsamples = 2048;
 static const int c_nlasterror = 128;
@@ -53,7 +54,7 @@ static void* pulse_thread(void* context)
 	ss.rate = g_sample_rate;
 
 	int err;
-	g_pulse = pa_simple_new(NULL, "testapp", PA_STREAM_PLAYBACK, NULL, "testapp", &ss, NULL, NULL, &err);
+	g_pulse = pa_simple_new(NULL, g_appname, PA_STREAM_PLAYBACK, NULL, g_appname, &ss, NULL, NULL, &err);
 	if (!g_pulse) {
 		snprintf(g_lasterror, c_nlasterror, "failed to connect to pulse server: %d", err);
 	}
@@ -76,6 +77,11 @@ static void* pulse_thread(void* context)
 	pa_simple_free(s);
 	g_pulse = 0;
 	return 0;
+}
+
+void set_pulse_application_name(const char* name)
+{
+	g_appname = name;
 }
 
 bool init(int sample_rate, samples_callback callback)
