@@ -33,9 +33,7 @@ int main()
 {
 	if (!start_sample()) {
 
-		char error[256];
-		tinyaudio::lasterror(error, sizeof(error));
-		fprintf(stderr, "Failed to initialize audio device: %s\n", error);
+		fprintf(stderr, "Failed to initialize audio device: %s\n", tinyaudio::last_error());
 		return -1;
 	}
 
