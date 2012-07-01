@@ -96,8 +96,7 @@ bool init(int sample_rate, samples_callback callback)
 	IClassFactory* factory = NULL;
 
 	hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
-	{
+	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
 		_snprintf(g_lasterror, c_nlasterror, "failed to initialize COM: 0x%08X", hr);
 		goto error;
 	}
@@ -106,30 +105,26 @@ bool init(int sample_rate, samples_callback callback)
 	if (!audiodll)
 		audiodll = LoadLibraryA(c_xaudio_module_distro);
 
-	if (!audiodll)
-	{
+	if (!audiodll) {
 		_snprintf(g_lasterror, c_nlasterror, "failed to load the XAudio dll: 0x%08X", GetLastError());
 		goto error;
 	}
 
 	typedef HRESULT (__stdcall *dll_get_class_object_func)(const IID&, const IID&, LPVOID*);
 	dll_get_class_object_func dllgetclassobj = (dll_get_class_object_func)GetProcAddress(audiodll, "DllGetClassObject");
-	if (!dllgetclassobj)
-	{
+	if (!dllgetclassobj) {
 		_snprintf(g_lasterror, c_nlasterror, "failed to xaudio's DllGetClassObject: 0x%08X", GetLastError());
 		goto error;
 	}
 
 	hr = dllgetclassobj(CLSID_XAudio2, IID_IClassFactory, (void**)&factory);
-	if (FAILED(hr))
-	{
+	if (FAILED(hr)) {
 		_snprintf(g_lasterror, c_nlasterror, "failed to create the xaudio class loader: 0x%08X", hr);
 		goto error;
 	}
 
 	hr = factory->CreateInstance(NULL, IID_IXAudio2, (void**)&g_device);
-	if (FAILED(hr))
-	{
+	if (FAILED(hr)) {
 		_snprintf(g_lasterror, c_nlasterror, "failed to create the xaudio device: 0x%08X", hr);
 		goto error;
 	}
@@ -138,15 +133,13 @@ bool init(int sample_rate, samples_callback callback)
 	factory = NULL;
 
 	hr = g_device->Initialize(0, XAUDIO2_DEFAULT_PROCESSOR);
-	if (FAILED(hr))
-	{
+	if (FAILED(hr)) {
 		_snprintf(g_lasterror, c_nlasterror, "failed to initialize the xaudio device: 0x%08X", hr);
 		goto error;
 	}
 #else
 	hr = XAudio2Create(&g_device, 0, XAUDIO2_DEFAULT_PROCESSOR);
-	if (FAILED(hr))
-	{
+	if (FAILED(hr)) {
 		_snprintf(g_lasterror, c_nlasterror, "failed to startup xaudio: 0x%08X", hr);
 		goto error;
 	}
@@ -154,8 +147,7 @@ bool init(int sample_rate, samples_callback callback)
 
 	static const UINT32 nchannels = 2;
 	hr = g_device->CreateMasteringVoice(&g_master, nchannels, sample_rate, 0, 0, NULL);
-	if (FAILED(hr))
-	{
+	if (FAILED(hr)) {
 		_snprintf(g_lasterror, c_nlasterror, "failed to create the xaudio mastering voice: 0x%08X", hr);
 		goto error;
 	}
@@ -171,8 +163,7 @@ bool init(int sample_rate, samples_callback callback)
 
 		static const UINT32 mixing_flags = 0;
 		hr = g_device->CreateSourceVoice(&g_mixer.m_voice, &mixing_format, mixing_flags, 1.0f, &g_mixer, NULL, NULL);
-		if (FAILED(hr))
-		{
+		if (FAILED(hr)) {
 			_snprintf(g_lasterror, c_nlasterror, "failed to create the xaudio source voice: 0x%08X", hr);
 			goto error;
 		}
@@ -200,21 +191,18 @@ error:
 
 void release()
 {
-	if (g_mixer.m_voice)
-	{
+	if (g_mixer.m_voice) {
 		g_mixer.m_voice->Stop();
 		g_mixer.m_voice->DestroyVoice();
 		g_mixer.m_voice = NULL;
 	}
 
-	if (g_master)
-	{
+	if (g_master) {
 		g_master->DestroyVoice();
 		g_master = NULL;
 	}
 
-	if (g_device)
-	{
+	if (g_device) {
 		g_device->Release();
 		g_device = NULL;
 	}

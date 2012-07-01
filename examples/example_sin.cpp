@@ -37,8 +37,8 @@ static float angle = 0.0f;
 // Very simple callback that generates a 440hz sine wave
 static void generate_samples(short* samples, int nsamples)
 {
-	for (; nsamples; --nsamples, samples += 2, angle += angle_delta)
-	{
+	for (; nsamples; --nsamples, samples += 2, angle += angle_delta) {
+
 		// wrap angle to [0.0, 2pi]
 		if (angle > two_pi)
 			angle -= two_pi;
@@ -54,9 +54,7 @@ static void generate_samples(short* samples, int nsamples)
 bool start_sample()
 {
 	if (!tinyaudio::init(sample_rate, &generate_samples))
-	{
 		return false;
-	}
 
 	return true;
 }

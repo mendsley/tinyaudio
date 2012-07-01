@@ -88,10 +88,9 @@ PP_EXPORT int32_t PPP_InitializeModule(PP_Module /*module_id*/, PPB_GetInterface
 
 PP_EXPORT const void* PPP_GetInterface(const char* interface_name)
 {
-	if (0 == strcmp(interface_name, PPP_INSTANCE_INTERFACE))
-	{
-		static PPP_Instance interface =
-		{
+	if (0 == strcmp(interface_name, PPP_INSTANCE_INTERFACE)) {
+
+		static PPP_Instance interface = {
 			&naclInstanceDidCreate,
 			&naclInstanceDidDestroy,
 			&naclInstanceDidChangeView,
