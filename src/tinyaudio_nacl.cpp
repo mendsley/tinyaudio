@@ -88,7 +88,7 @@ void release()
 {
 }
 
-const char* lasterror()
+const char* last_error()
 {
 	return g_lasterror;
 }

@@ -199,7 +199,7 @@ void release()
 	pthread_join(g_thread, NULL);
 }
 
-const char* lasterror()
+const char* last_error()
 {
 	return g_lasterror;
 }

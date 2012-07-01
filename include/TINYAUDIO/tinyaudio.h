@@ -37,7 +37,7 @@ typedef void (*samples_callback)(short* samples_, int nsamples_);
 bool init(int samples_rate, samples_callback callback);
 void release();
 
-const char* lasterror();
+const char* last_error();
 
 }
 
