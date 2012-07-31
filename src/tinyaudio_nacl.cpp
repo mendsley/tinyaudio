@@ -43,18 +43,20 @@ static const char* g_lasterror = "";
 static void nacl_stream_callback(void* sample_buffer, uint32_t buffer_size_in_bytes, void* /*context*/)
 {
 	if (g_callback)
-		g_callback((short*)sample_buffer, c_nsamples);
+		g_callback((short*)sample_buffer, buffer_size_in_bytes / (2 * sizeof(short)));
 }
 
 bool set_nacl_interfaces(PP_Instance instance, const PPB_Audio* audio, const PPB_AudioConfig* audio_config)
 {
 	// make sure NaCl isn't doing weird things to our sample buffer
-	if (c_nsamples != (int)audio_config->RecommendSampleFrameCount(PP_AUDIOSAMPLERATE_44100, c_nsamples)) {
-		g_lasterror = "NaCl runtime returned a modifed sample buffer size";
-		return false;
-	}
+	const uint32_t nsamples =
+#ifdef PPB_AUDIO_CONFIG_INTERFACE_1_1
+		audio_config->RecommendSampleFrameCount(instance, PP_AUDIOSAMPLERATE_44100, c_nsamples);
+#else
+		audio_config->RecommendSampleFrameCount(PP_AUDIOSAMPLERATE_44100, c_nsamples);
+#endif
 
-	PP_Resource resource = audio_config->CreateStereo16Bit(instance, PP_AUDIOSAMPLERATE_44100, c_nsamples);
+	PP_Resource resource = audio_config->CreateStereo16Bit(instance, PP_AUDIOSAMPLERATE_44100, nsamples);
 	if (!resource) {
 		g_lasterror = "failed to create a stereo 16bit audio config";
 		return false;
