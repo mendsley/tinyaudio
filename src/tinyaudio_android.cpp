@@ -64,6 +64,26 @@ bool init(int sample_rate, samples_callback callback) {
 	g_lasterror[0] = 0;
 	g_player.callback = callback;
 
+	SLmilliHertz samplerate;
+	switch (sample_rate) {
+	case 8000: samplerate = SL_SAMPLINGRATE_8; break;
+	case 11025: samplerate = SL_SAMPLINGRATE_11_025; break;
+	case 12000: samplerate = SL_SAMPLINGRATE_12; break;
+	case 16000: samplerate = SL_SAMPLINGRATE_16; break;
+	case 22050: samplerate = SL_SAMPLINGRATE_22_05; break;
+	case 24000: samplerate = SL_SAMPLINGRATE_24; break;
+	case 32000: samplerate = SL_SAMPLINGRATE_32; break;
+	case 44100: samplerate = SL_SAMPLINGRATE_44_1; break;
+	case 48000: samplerate = SL_SAMPLINGRATE_48; break;
+	case 64000: samplerate = SL_SAMPLINGRATE_64; break;
+	case 88200: samplerate = SL_SAMPLINGRATE_88_2; break;
+	case 96000: samplerate = SL_SAMPLINGRATE_96; break;
+	case 192000: samplerate = SL_SAMPLINGRATE_192; break;
+	default:
+		snprintf(g_lasterror, c_nlasterror, "Unsupported sample rate %d", sample_rate);
+		return false;
+	}
+
 	static const SLEngineOption engineOpts[] = {
 		(SLuint32) SL_ENGINEOPTION_THREADSAFE, (SLuint32) SL_BOOLEAN_FALSE,
 	};
@@ -108,7 +128,7 @@ bool init(int sample_rate, samples_callback callback) {
 	SLDataFormat_PCM format = {
 		SL_DATAFORMAT_PCM,
 		2,
-		SL_SAMPLINGRATE_44_1,
+		samplerate,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
