@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="com.github.mendsley.tinyaudio"
+        android:versionCode="1"
+        android:versionName="1.0">
+
+    <!-- This is the platform API where NativeActivity was introduced. -->
+    <uses-sdk android:targetSdkVersion="8" android:minSdkVersion="8" />
+
+	<supports-screens
+		android:largeScreens="true"
+		android:xlargeScreens="true"
+		/>
+
+    <!-- This .apk has no Java code itself, so set hasCode to false. -->
+    <application
+		android:label="@string/app_name"
+		android:screenOrientation="sensorLandscape"
+		android:icon="@drawable/icon"
+		>
+
+        <!-- Our activity is the built-in NativeActivity framework class.
+             This will take care of integrating with our NDK code. -->
+        <activity android:screenOrientation="landscape"
+				android:name="com.github.mendsley.tinyaudio.MainActivity"
+                android:label="@string/app_name">
+            <!-- Tell NativeActivity the name of or .so -->
+            <meta-data android:name="android.app.lib_name" android:value="sin" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest> 

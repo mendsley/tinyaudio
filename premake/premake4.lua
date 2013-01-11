@@ -41,6 +41,9 @@ solution "tinyaudio_examples"
 	configuration { "nacl64" }
 		targetextension ".64.nexe"
 		linkoptions { "-melf64_nacl" }
+	configuration { "android" }
+		targetextension ".so"
+		targetdir (ROOT_DIR .. "bin/android/bin/lib/armeabi-v7a/")
 	configuration { "nacl*" }
 		targetdir (ROOT_DIR .. "bin/nacl/")
 		links {
@@ -96,4 +99,19 @@ solution "tinyaudio_examples"
 			links {
 				"pthread",
 				"pulse-simple",
+			}
+
+		configuration { "android" }
+
+			kind "SharedLib"
+
+			files {
+				ROOT_DIR .. "examples/main_android.cpp",
+				ROOT_DIR .. "src/tinyaudio_android.cpp",
+			}
+
+			links {
+				"android",
+				"log",
+				"OpenSLES",
 			}

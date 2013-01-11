@@ -84,8 +84,8 @@ bool init(int sample_rate, samples_callback callback) {
 		return false;
 	}
 
-	static const SLEngineOption engineOpts[] = {
-		(SLuint32) SL_ENGINEOPTION_THREADSAFE, (SLuint32) SL_BOOLEAN_FALSE,
+	const SLEngineOption engineOpts[] = {
+		{SL_ENGINEOPTION_THREADSAFE}, {SL_BOOLEAN_FALSE},
 	};
 
 	SLObjectItf iface;

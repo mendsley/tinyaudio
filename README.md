@@ -61,6 +61,7 @@ hardware. Simply fill the buffer in a timely manner to avoid audio lag.
 Platform drivers
 ----------------
 `src/tinyaudio_alsa.cpp` ALSA support for Linux  
+`src/tinyaudio_android.cpp` Support for Android native applications  
 `src/tinyaudio_nacl.cpp` Support for 32/64bit NativeClient applications  
 `src/tinyaudio_null.cpp` Null implementation of the interface  
 `src/tinyaudio_pulse.cpp` Pulse audio support for Linux  

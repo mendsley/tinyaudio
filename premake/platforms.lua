@@ -56,3 +56,16 @@ newplatform {
 		cppflags = "-MMD",
 	}
 }
+
+newplatform {
+	name = "android",
+	description = "Andoroid",
+	gcc = {
+		cc = "arm-linux-androideabi-gcc",
+		cxx = "arm-linux-androideabi-g++",
+		ar = "arm-linux-androideabi-ar",
+		cppflags = "-MMD",
+	}
+}
+
+premake.gcc.platforms['Native'] = premake.gcc.platforms[_OPTIONS.platform]
