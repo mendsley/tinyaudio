@@ -70,7 +70,11 @@ static bool alsa_init()
 		return false;
 	}
 
+#ifdef TINYAUDIO_FLOAT_BUS
+	if (0 > (err = snd_pcm_hw_params_set_format(g_handle, hwparams, SND_PCM_FORMAT_FLOAT_LE))) {
+#else
 	if (0 > (err = snd_pcm_hw_params_set_format(g_handle, hwparams, SND_PCM_FORMAT_S16_LE))) {
+#endif
 		snd_pcm_hw_params_free(hwparams);
 		snprintf(g_lasterror, c_nlasterror, "failed to set hwparams format: %d", err);
 		return false;
@@ -153,7 +157,7 @@ static void* alsa_thread(void* context)
 		return 0;
 
 	int err;
-	short samples[c_nsamples * 2];
+	sample_type samples[c_nsamples * 2];
 	snd_pcm_t* pcm = g_handle;
 	g_running = true;
 	while (g_running) {

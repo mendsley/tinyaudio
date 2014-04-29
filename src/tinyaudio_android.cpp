@@ -39,7 +39,10 @@ struct AndroidPlayer {
 
 	static const int c_nbuffers = 2;
 	static const int c_nsamples = 2048;
-	int16_t buffers[c_nbuffers][c_nsamples * 2];
+	sample_type buffers[c_nbuffers][c_nsamples * 2];
+#if TINYAUDIO_FLOAT_BUS
+	int16_t scratch[c_nsamples * 2];
+#endif
 };
 
 static AndroidPlayer g_player = {0};
@@ -51,10 +54,22 @@ static void SLAPIENTRY audio_callback(SLAndroidSimpleBufferQueueItf bq, void* co
 
 	AndroidPlayer* p = (AndroidPlayer*)context;
 
-	int16_t* buffer = p->buffers[p->currentBuffer];
+	sample_type* buffer = p->buffers[p->currentBuffer];
 
 	p->callback(buffer, p->c_nsamples);
-	(*bq)->Enqueue(bq, buffer, sizeof(int16_t) * 2 * p->c_nsamples);
+
+#if TINYAUDIO_FLOAT_BUS
+	// convert from float to int16_t
+	for (int ii = 0; ii < p->c_nsamples*2; ++ii) {
+		p->scratch[ii] = (int16_t)(0x8000 * buffer[ii]);
+	}
+
+	const int16_t* s16buffer = p->scratch;
+#else
+	const int16_t* s16buffer = buffer;
+#endif
+
+	(*bq)->Enqueue(bq, s16buffer, sizeof(int16_t) * 2 * p->c_nsamples);
 
 	p->currentBuffer = (p->currentBuffer + 1 ) % p->c_nbuffers;
 }

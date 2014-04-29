@@ -49,7 +49,11 @@ static void* pulse_thread(void* context)
 	sem_t* init = (sem_t*)context;
 
 	pa_sample_spec ss;
+#if TINYAUDIO_FLOAT_BUS
+	ss.format = PA_SAMPLE_FLOAT32LE;
+#else
 	ss.format = PA_SAMPLE_S16LE;
+#endif
 	ss.channels = 2;
 	ss.rate = g_sample_rate;
 
@@ -64,7 +68,7 @@ static void* pulse_thread(void* context)
 		return 0;
 
 	pa_simple* s = g_pulse;
-	short samples[c_nsamples*2];
+	sample_type samples[c_nsamples*2];
 
 	g_running = true;
 	while (g_running) {

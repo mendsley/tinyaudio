@@ -39,11 +39,24 @@ static const int c_nsamples = 2048;
 static PP_Resource g_stream;
 static samples_callback g_callback;
 static const char* g_lasterror = "";
+static float scratch[c_nsamples * 2];
 
 static void nacl_stream_callback(void* sample_buffer, uint32_t buffer_size_in_bytes, void* /*context*/)
 {
-	if (g_callback)
-		g_callback((short*)sample_buffer, buffer_size_in_bytes / (2 * sizeof(short)));
+	if (g_callback) {
+		const int nsamples = buffer_size_in_bytes / (2 * sizeof(short));
+#if TINYAUDIO_FLOAT_BUS
+		g_callback(scratch, nsamples);
+		for (int ii = 0; ii < nsamples; ++ii) {
+			const int32_t sample = (int32_t)((float)0x8000 * scratch[ii]);
+			if (sample > SHRT_MAX) sample = SHRT_MAX;
+			if (sample < SHRT_MIN) sample = SHRT_MIN;
+			sample_buffer[ii] = (int16_t)sample;
+		}
+#else
+		g_callback((short*)sample_buffer, nsamples);
+#endif
+	}
 }
 
 bool set_nacl_interfaces(PP_Instance instance, const PPB_Audio* audio, const PPB_AudioConfig* audio_config)

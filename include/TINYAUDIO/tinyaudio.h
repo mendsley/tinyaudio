@@ -29,10 +29,20 @@
 
 namespace tinyaudio {
 
+#ifndef TINYAUDIO_FLOAT_BUS
+#define TINYAUDIO_FLOAT_BUS 0
+#endif
+
+#if TINYAUDIO_FLOAT_BUS
+	typedef float sample_type;
+#else
+	typedef short sample_type;
+#endif
+
 // This will get called by another thread... so take proper care.
 // nsamples is the number of *stereo* samples to be filled, NOT the
-// number of short integers to write.
-typedef void (*samples_callback)(short* samples_, int nsamples_);
+// number of floats to write.
+typedef void (*samples_callback)(sample_type* samples, int nsamples);
 
 bool init(int samples_rate, samples_callback callback);
 void release();

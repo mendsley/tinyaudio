@@ -38,33 +38,75 @@ static const int c_npackets = 2;
 
 struct XAudioMixer : IXAudio2VoiceCallback
 {
+	HANDLE m_bufferEndEvent;
+	HANDLE m_shutdownEvent;
+	HANDLE m_thread;
 	samples_callback m_callback;
 	IXAudio2SourceVoice* m_voice;
-	short m_packets[c_npackets][c_nsamples * 2];
+	sample_type m_packets[c_npackets][c_nsamples * 2];
 
-	void fill_buffer(void* buffer)
+	void fill_buffer(sample_type* sample_data)
 	{
-		short* sample_data = (short*)buffer;
 		m_callback(sample_data, c_nsamples);
 
 		XAUDIO2_BUFFER packet = {0};
-		packet.AudioBytes = sizeof(short) * c_nsamples * 2;
+		packet.AudioBytes = sizeof(sample_type) * c_nsamples * 2;
 		packet.pAudioData = (const BYTE*)sample_data;
-		packet.pContext = sample_data;
 		m_voice->SubmitSourceBuffer(&packet, NULL);
 	}
 
 	void seed_buffers()
 	{
-		for (int ii = 0; ii < c_npackets; ++ii)
-			fill_buffer(m_packets[ii]);
+		m_thread = CreateThread(NULL, 0, buffer_thread, this, 0, NULL);
 	}
 
-	virtual ~XAudioMixer() {}
+	static DWORD WINAPI buffer_thread(void* context)
+	{
+		XAudioMixer* mixer = (XAudioMixer*)context;
+		
+		HANDLE shutdown = mixer->m_shutdownEvent;
+		XAUDIO2_VOICE_STATE state;
+		unsigned int currentBuffer = 0;
+		while (WAIT_OBJECT_0 != WaitForSingleObject(shutdown, 0))
+		{
+			// wait for buffer space to be available
+			while (mixer->m_voice->GetState(&state), state.BuffersQueued >= c_npackets)
+			{
+				WaitForSingleObject(mixer->m_bufferEndEvent, INFINITE);
+			}
+
+			// submit a buffer
+			mixer->fill_buffer(mixer->m_packets[currentBuffer % c_npackets]);
+			++currentBuffer;
+		}
+
+		return 0;
+	}
+
+	XAudioMixer()
+	{
+		m_bufferEndEvent = CreateEventA(NULL, FALSE, FALSE, NULL);
+		m_shutdownEvent = CreateEventA(NULL, FALSE, FALSE, NULL);
+		m_thread = NULL;
+	}
+
+	virtual ~XAudioMixer()
+	{
+		// signal the processing thread
+		SetEvent(m_shutdownEvent);
+		if (m_thread != NULL)
+			WaitForSingleObject(m_thread, INFINITE);
+		
+		CloseHandle(m_shutdownEvent);
+		CloseHandle(m_thread);
+		CloseHandle(m_bufferEndEvent);
+	}
+
 	virtual void CALLBACK OnBufferEnd(void* context)
 	{
-		fill_buffer(context);
+		SetEvent(m_bufferEndEvent);
 	}
+
 	virtual void CALLBACK OnBufferStart(void*) {}
 	virtual void CALLBACK OnLoopEnd(void*) {}
 	virtual void CALLBACK OnStreamEnd() {}
@@ -88,6 +130,11 @@ EXTERN_C const GUID DECLSPEC_SELECTANY IID_IXAudio2 = { 0x8bcf1f58, 0x9fe7, 0x45
 static const char* c_xaudio_module_system = "XAudio2_7.dll";
 static const char* c_xaudio_module_distro = ".\\XAudio2_dist.dll";
 #endif
+
+void* getXAudio2()
+{
+	return g_device;
+}
 
 bool init(int sample_rate, samples_callback callback)
 {
@@ -155,11 +202,16 @@ bool init(int sample_rate, samples_callback callback)
 	{
 		WAVEFORMATEX mixing_format = {0};
 		mixing_format.nChannels = nchannels;
-		mixing_format.wBitsPerSample = 16;
 		mixing_format.nSamplesPerSec = sample_rate;
-		mixing_format.nBlockAlign = sizeof(short) * mixing_format.nChannels;
+		mixing_format.nBlockAlign = sizeof(sample_type) * mixing_format.nChannels;
 		mixing_format.nAvgBytesPerSec = mixing_format.nSamplesPerSec * mixing_format.nBlockAlign;
+#if TINYAUDIO_FLOAT_BUS
+		mixing_format.wBitsPerSample = 32;
+		mixing_format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+#else
+		mixing_format.wBitsPerSample = 16;
 		mixing_format.wFormatTag = WAVE_FORMAT_PCM;
+#endif
 
 		static const UINT32 mixing_flags = 0;
 		hr = g_device->CreateSourceVoice(&g_mixer.m_voice, &mixing_format, mixing_flags, 1.0f, &g_mixer, NULL, NULL);
