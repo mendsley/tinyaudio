@@ -42,7 +42,11 @@ static samples_callback g_callback;
 static const char* g_lasterror = "";
 static float scratch[c_nsamples * 2];
 
+#ifdef PPB_AUDIO_CONFIG_INTERFACE_1_1
+static void nacl_stream_callback(void* sample_buffer, uint32_t buffer_size_in_bytes, PP_TimeDelta /*latency*/, void* /*context*/)
+#else
 static void nacl_stream_callback(void* sample_buffer, uint32_t buffer_size_in_bytes, void* /*context*/)
+#endif
 {
 	if (g_callback) {
 		const int nsamples = buffer_size_in_bytes / (2 * sizeof(short));
