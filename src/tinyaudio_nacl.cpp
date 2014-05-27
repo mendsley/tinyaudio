@@ -28,6 +28,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 #include <ppapi/c/pp_instance.h>
 #include <ppapi/c/pp_resource.h>
 #include <ppapi/c/ppb_audio.h>
@@ -48,10 +49,10 @@ static void nacl_stream_callback(void* sample_buffer, uint32_t buffer_size_in_by
 #if TINYAUDIO_FLOAT_BUS
 		g_callback(scratch, nsamples);
 		for (int ii = 0; ii < nsamples; ++ii) {
-			const int32_t sample = (int32_t)((float)0x8000 * scratch[ii]);
+			int32_t sample = (int32_t)((float)0x8000 * scratch[ii]);
 			if (sample > SHRT_MAX) sample = SHRT_MAX;
 			if (sample < SHRT_MIN) sample = SHRT_MIN;
-			sample_buffer[ii] = (int16_t)sample;
+			((int16_t*)sample_buffer)[ii] = (int16_t)sample;
 		}
 #else
 		g_callback((short*)sample_buffer, nsamples);
