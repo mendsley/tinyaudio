@@ -33,7 +33,7 @@
 
 namespace tinyaudio {
 
-bool set_nacl_interfaces(PP_Instance instance, const PPB_Audio* audio, const PPB_AudioConfig* audio_config);
+void set_nacl_interfaces(PP_Instance instance, const PPB_Audio* audio, const PPB_AudioConfig* audio_config);
 
 }
 

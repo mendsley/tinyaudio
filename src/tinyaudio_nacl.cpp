@@ -37,7 +37,9 @@
 namespace tinyaudio {
 
 static const int c_nsamples = 2048;
-static PP_Resource g_stream;
+static PP_Instance g_ppInstance;
+static const PPB_Audio* g_ppbAudio;
+static const PPB_AudioConfig* g_ppbAudioConfig;
 static samples_callback g_callback;
 static const char* g_lasterror = "";
 static float scratch[c_nsamples * 2];
@@ -64,43 +66,55 @@ static void nacl_stream_callback(void* sample_buffer, uint32_t buffer_size_in_by
 	}
 }
 
-bool set_nacl_interfaces(PP_Instance instance, const PPB_Audio* audio, const PPB_AudioConfig* audio_config)
+void set_nacl_interfaces(PP_Instance instance, const PPB_Audio* audio, const PPB_AudioConfig* audio_config)
 {
+	g_ppInstance = instance;
+	g_ppbAudio = audio;
+	g_ppbAudioConfig = audio_config;
+}
+
+bool init(int sample_rate, samples_callback callback)
+{
+	if (g_ppInstance == 0) {
+		g_lasterror = "No PP_Instance set. Use ser_nacl_interfaces";
+		return false;
+	} else if (g_ppbAudio == NULL) {
+		g_lasterror = "No PPB_Audio interface set. Use ser_nacl_interfaces";
+		return false;
+	} else if (g_ppbAudioConfig == NULL) {
+		g_lasterror = "No PPB_AudioConfig interface set. Use ser_nacl_interfaces";
+		return false;
+	}
+
+	if (sample_rate != 44100) {
+		g_lasterror = "tinyaudio only supports 44100 for NaCl";
+		return false;
+	}
+
 	// make sure NaCl isn't doing weird things to our sample buffer
 	const uint32_t nsamples =
 #ifdef PPB_AUDIO_CONFIG_INTERFACE_1_1
-		audio_config->RecommendSampleFrameCount(instance, PP_AUDIOSAMPLERATE_44100, c_nsamples);
+		g_ppbAudioConfig->RecommendSampleFrameCount(g_ppInstance, PP_AUDIOSAMPLERATE_44100, c_nsamples);
 #else
-		audio_config->RecommendSampleFrameCount(PP_AUDIOSAMPLERATE_44100, c_nsamples);
+		g_ppbAudioConfig->RecommendSampleFrameCount(PP_AUDIOSAMPLERATE_44100, c_nsamples);
 #endif
 
-	PP_Resource resource = audio_config->CreateStereo16Bit(instance, PP_AUDIOSAMPLERATE_44100, nsamples);
+	PP_Resource resource = g_ppbAudioConfig->CreateStereo16Bit(g_ppInstance, PP_AUDIOSAMPLERATE_44100, nsamples);
 	if (!resource) {
 		g_lasterror = "failed to create a stereo 16bit audio config";
 		return false;
 	}
 
-	g_stream = audio->Create(instance, resource, nacl_stream_callback, 0);
-	if (!g_stream) {
+	PP_Resource stream = g_ppbAudio->Create(g_ppInstance, resource, nacl_stream_callback, 0);
+	if (!stream) {
 		g_lasterror = "failed to create the audio stream";
 		return false;
 	}
 
-	audio->StartPlayback(g_stream);
-	return true;
-}
-
-bool init(int sample_rate, samples_callback callback)
-{
-	if (sample_rate != 44100) {
-		g_lasterror = "tinyaudio only supports 44100 for NaCl";
-		return false;
-	}
-	if (!g_stream)
-		return false;
-
 	g_callback = callback;
 	g_lasterror = "";
+
+	g_ppbAudio->StartPlayback(stream);
 	return true;
 }
 
