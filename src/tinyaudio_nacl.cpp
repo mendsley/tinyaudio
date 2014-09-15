@@ -86,20 +86,28 @@ bool init(int sample_rate, samples_callback callback)
 		return false;
 	}
 
-	if (sample_rate != 44100) {
-		g_lasterror = "tinyaudio only supports 44100 for NaCl";
+	PP_AudioSampleRate sampleRate;
+	switch (sample_rate) {
+	case 44100:
+		sampleRate = PP_AUDIOSAMPLERATE_44100;
+		break;
+	case 48000:
+		sampleRate = PP_AUDIOSAMPLERATE_48000;
+		break;
+	default:
+		g_lasterror = "tinyaudio only supports 44100/48000 for NaCl";
 		return false;
 	}
 
 	// make sure NaCl isn't doing weird things to our sample buffer
 	const uint32_t nsamples =
 #ifdef PPB_AUDIO_CONFIG_INTERFACE_1_1
-		g_ppbAudioConfig->RecommendSampleFrameCount(g_ppInstance, PP_AUDIOSAMPLERATE_44100, c_nsamples);
+		g_ppbAudioConfig->RecommendSampleFrameCount(g_ppInstance, sampleRate, c_nsamples);
 #else
-		g_ppbAudioConfig->RecommendSampleFrameCount(PP_AUDIOSAMPLERATE_44100, c_nsamples);
+		g_ppbAudioConfig->RecommendSampleFrameCount(sampleRate, c_nsamples);
 #endif
 
-	PP_Resource resource = g_ppbAudioConfig->CreateStereo16Bit(g_ppInstance, PP_AUDIOSAMPLERATE_44100, nsamples);
+	PP_Resource resource = g_ppbAudioConfig->CreateStereo16Bit(g_ppInstance, sampleRate, nsamples);
 	if (!resource) {
 		g_lasterror = "failed to create a stereo 16bit audio config";
 		return false;
