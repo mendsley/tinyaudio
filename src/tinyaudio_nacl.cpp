@@ -51,16 +51,17 @@ static void nacl_stream_callback(void* sample_buffer, uint32_t buffer_size_in_by
 #endif
 {
 	if (g_callback) {
-		const int nsamples = buffer_size_in_bytes / (2 * sizeof(short));
 #if TINYAUDIO_FLOAT_BUS
+		const int nvalues = buffer_size_in_bytes / sizeof(short);
 		g_callback(scratch, nsamples);
-		for (int ii = 0; ii < nsamples; ++ii) {
+		for (int ii = 0; ii < nvalues; ++ii) {
 			int32_t sample = (int32_t)((float)0x8000 * scratch[ii]);
 			if (sample > SHRT_MAX) sample = SHRT_MAX;
 			if (sample < SHRT_MIN) sample = SHRT_MIN;
 			((int16_t*)sample_buffer)[ii] = (int16_t)sample;
 		}
 #else
+		const int nsamples = buffer_size_in_bytes / (2 * sizeof(short));
 		g_callback((short*)sample_buffer, nsamples);
 #endif
 	}
