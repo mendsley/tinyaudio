@@ -139,7 +139,7 @@ void* getXAudio2()
 bool init(int sample_rate, samples_callback callback)
 {
 	HRESULT hr;
-#if !defined(_XBOX)
+#if !defined(_XBOX) && !defined(_DURANGO)
 	IClassFactory* factory = NULL;
 
 	hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
@@ -233,7 +233,7 @@ bool init(int sample_rate, samples_callback callback)
 error:
 	tinyaudio::release();
 
-#if !defined(_XBOX)
+#if !defined(_XBOX) && !defined(_DURANGO)
 	if (factory)
 		factory->Release();
 #endif
@@ -259,7 +259,7 @@ void release()
 		g_device = NULL;
 	}
 
-#if !defined(_XBOX)
+#if !defined(_XBOX) && !defined(_DURANGO)
 	HMODULE audiodll = GetModuleHandleA(c_xaudio_module_distro);
 	if (audiodll)
 		FreeLibrary(audiodll);
